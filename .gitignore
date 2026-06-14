@@ -1,0 +1,37 @@
+# Build products
+build/
+build_*/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+compile_commands.json
+
+# Runtime outputs
+outputs/
+outputs_*/
+*.log
+*_stats.txt
+*_static_time_*.txt
+*_dynamic_time_*.txt
+*_after_addE_*.txt
+*_after_delE_*.txt
+*_output_*.txt
+*_nbrs
+*_edges
+*_degree
+*_sorted_by_*.txt
+
+# Local data dumps. Keep the curated examples in datasets/.
+datasets/*.hyp
+datasets/*.txt
+!datasets/coauth-MAG-History-full.hyp
+!datasets/coauth-MAG-History-delete-edges.txt
+!datasets/coauth-MAG-History-insert-edges.hyp
+!datasets/README.md
+
+# Python and editor noise
+__pycache__/
+*.py[cod]
+.DS_Store
+.vscode/
+.idea/
