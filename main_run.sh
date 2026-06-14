@@ -26,18 +26,21 @@ fi
 mkdir -p "$OUTPUT_DIR"
 export DHYP_OUTPUT_DIR="$OUTPUT_DIR"
 
-echo "[1/4] Dataset information"
+echo "[1/5] Dataset information"
 "$BIN" "$DATASET" info
 
-echo "[2/4] Static neighbor-core decomposition"
+echo "[2/5] Static neighbor-core decomposition"
 "$BIN" "$DATASET" run 0 1 --info
 
-echo "[3/4] Prepare sorted dataset copy"
-cp "$DATASET" "$OUTPUT_DIR/coauth_MAG_History_for_sort.hyp"
-"$BIN" "$OUTPUT_DIR/coauth_MAG_History_for_sort.hyp" org
-"$BIN" "$OUTPUT_DIR/coauth_MAG_History_for_sort.hyp" sortEV desc asc
+echo "[3/5] Single-edge dynamic update examples"
+"$BIN" "$DATASET" delE_single 1
+"$BIN" "$DATASET" addE_single 10,11,12
 
-echo "[4/4] Help page"
+echo "[4/5] Batch dynamic update examples"
+"$BIN" "$DATASET" delE_batch datasets/coauth-MAG-History-delete-edges.txt
+"$BIN" "$DATASET" addE_batch datasets/coauth-MAG-History-insert-edges.hyp
+
+echo "[5/5] Help page"
 "$BIN" --help
 
 echo "Done. Outputs are under $OUTPUT_DIR/."

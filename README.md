@@ -3,8 +3,7 @@
 This repository provides the C++ implementation for dynamic neighbor-based core
 maintenance in hypergraphs. It supports static neighbor-core decomposition,
 single-edge insertion, single-edge deletion, batch edge insertion, batch edge
-deletion, and several utilities for preprocessing, sorting, and generating
-hypergraph datasets.
+deletion, and a small set of graph preprocessing and generation utilities.
 
 The project is organized as a standalone CMake package and can be built
 independently from the paper source tree.
@@ -89,17 +88,8 @@ On Windows, the executable may be:
 - `org`: Organize the hypergraph by renumbering vertices from 1 to N, removing
   duplicate vertices in the same hyperedge, and removing empty or single-vertex
   hyperedges. The output overwrites the input dataset.
-- `vary`: Generate vertex-varied datasets from the input hypergraph.
-- `varyV`: Alias of `vary`.
-- `varyE`: Generate edge-varied datasets from the input hypergraph.
-- `sort <degree|nbr> <asc|desc>`: Sort vertices by degree or neighbor count.
-- `sortN <degree|nbr> <asc|desc>`: Alias of `sort`.
-- `sortE <asc|desc>`: Sort hyperedges by edge size.
-- `sortEV <edge-order> <node-order>`: Sort hyperedges and then vertices.
-- `sortVE <edge-order> <node-order>`: Sort vertices and then hyperedges.
 - `gen P <nbr|deg> <numNodes> <numEdges>`: Generate an organized hypergraph
   with a PowerLaw distribution over neighbor count or degree.
-- `genR <numNodes> <numEdges> <maxEdgeSize>`: Generate a random hypergraph.
 - `run <alg> [iters] [--info]`: Run static neighbor-core decomposition.
 - `delE_single <edge_id>`: Delete one hyperedge by its edge ID.
 - `addE_single <node1,node2,...>`: Insert one hyperedge from command-line vertex
@@ -226,8 +216,34 @@ bash main_run.sh
 ```
 
 The script configures CMake, builds the executable, runs basic dataset
-information commands, runs static decomposition, and prints the help page. It is
-intended as a quick sanity check for a fresh checkout.
+information commands, runs static decomposition, runs the dynamic update
+examples, and prints the help page. It is intended as a quick sanity check for a
+fresh checkout.
+
+## Code Attribution
+
+The static neighbor-core decomposition implementation and graph utility code are
+adapted from the source code associated with:
+
+```bibtex
+@article{10.1145/3709656,
+  author = {Zhang, Wenqian and Yang, Zhengyi and Wen, Dong and Li, Wentao and Zhang, Wenjie and Lin, Xuemin},
+  title = {Accelerating Core Decomposition in Billion-Scale Hypergraphs},
+  year = {2025},
+  issue_date = {February 2025},
+  publisher = {Association for Computing Machinery},
+  address = {New York, NY, USA},
+  volume = {3},
+  number = {1},
+  url = {https://doi.org/10.1145/3709656},
+  doi = {10.1145/3709656},
+  journal = {Proc. ACM Manag. Data},
+  month = feb,
+  articleno = {6},
+  numpages = {27},
+  keywords = {core decomposition, hypergraph, k-core}
+}
+```
 
 ## Citation
 
