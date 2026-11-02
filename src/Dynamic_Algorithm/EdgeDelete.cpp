@@ -64,7 +64,7 @@ void delE_single(Hypergraph &graph, std::size_t edgeId) {
     if (edgeId == 0 || edgeId >= graph.getGraphEdgeSize()) return;
 
     std::size_t old_e_core = graph.getEdgeCore(edgeId);
-    if (old_e_core == 0) return;
+    if (graph.getNodes(edgeId).empty()) return;
 
     std::size_t numNodes = graph.getGraphNodeSize();
     std::vector<char> inBucket(numNodes, 0);
@@ -156,7 +156,7 @@ void delE_batch(Hypergraph &graph, const std::vector<std::size_t>& batchEdgeIds)
         if (edgeId == 0 || edgeId >= graph.getGraphEdgeSize()) continue;
 
         std::size_t old_e_core = graph.getEdgeCore(edgeId);
-        if (old_e_core == 0) continue;
+        if (graph.getNodes(edgeId).empty()) continue;
 
         std::vector<std::size_t> edgeNodes = graph.getNodes(edgeId);
 
@@ -183,7 +183,7 @@ void delE_batch(Hypergraph &graph, const std::vector<std::size_t>& batchEdgeIds)
         std::vector<std::size_t>& incident_edges = graph.node_edge_simplices[nodeId];
         auto new_end = std::remove_if(incident_edges.begin(), incident_edges.end(),
             [&graph](std::size_t eid) {
-                return graph.getEdgeCore(eid) == 0;
+                return graph.getNodes(eid).empty();
             });
         incident_edges.erase(new_end, incident_edges.end());
     }
