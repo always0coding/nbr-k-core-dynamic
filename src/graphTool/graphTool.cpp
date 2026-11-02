@@ -14,8 +14,8 @@
 void getGraphDetiles(Hypergraph &graph, const std::string &output_path) {
     std::cout << std::fixed << std::setprecision(2); // set the format to fixed and 2 decimal places
 
-    std::cout << "node size: " << graph.getGraphNodeSize() << std::endl;
-    std::cout << "edge size: " << graph.getGraphEdgeSize() << std::endl;
+    std::cout << "node size: " << (graph.getGraphNodeSize() > 0 ? graph.getGraphNodeSize() - 1 : 0) << std::endl;
+    std::cout << "edge size: " << (graph.getGraphEdgeSize() > 0 ? graph.getGraphEdgeSize() - 1 : 0) << std::endl;
 
     const std::string nbrPath = output_path + "_nbr.txt";
     auto nbrFile = std::ofstream(nbrPath);
@@ -87,8 +87,8 @@ void getGraphDetiles(Hypergraph &graph, const std::string &output_path) {
 void printGraphInfo(Hypergraph &graph) {
     std::cout << std::fixed << std::setprecision(2);
 
-    std::cout << "node size: " << graph.getGraphNodeSize() << std::endl;
-    std::cout << "edge size: " << graph.getGraphEdgeSize() << std::endl;
+    std::cout << "node size: " << (graph.getGraphNodeSize() > 0 ? graph.getGraphNodeSize() - 1 : 0) << std::endl;
+    std::cout << "edge size: " << (graph.getGraphEdgeSize() > 0 ? graph.getGraphEdgeSize() - 1 : 0) << std::endl;
     std::size_t averageNbrSize = 0;
     std::size_t maxNbrSize = 0;
     

@@ -5,6 +5,10 @@ maintenance in hypergraphs. It supports static neighbor-core decomposition,
 single-edge insertion, single-edge deletion, batch edge insertion, batch edge
 deletion, and a small set of graph preprocessing and generation utilities.
 
+The update commands use the latest CoreFlow algorithms: single-edge insertion
+with EarlyStop + EdgeFilter, batch insertion with EdgeFilter + Jump, and
+bucket-based single-edge and batch deletion.
+
 The project is organized as a standalone CMake package and can be built
 independently from the paper source tree.
 
@@ -43,7 +47,7 @@ To build the project, follow these steps:
 2. Navigate to the root directory of the project.
 
 ```bash
-cd dynamic_hypergraph
+cd nbr-k-core-dynamic
 ```
 
 3. Configure the project with CMake.
@@ -61,7 +65,7 @@ cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 4. Compile the project.
 
 ```bash
-cmake --build build --parallel
+cmake --build build --config Release --parallel
 ```
 
 This creates the `DynamicHypergraphCore` executable in the `build` directory.
@@ -103,10 +107,14 @@ Currently, the supported static algorithm ID is:
 - `0`: HyperCD++ (`nbrCoreDecomposition`)
 
 Hyperedge IDs are 1-based. The first real hyperedge has ID `1`.
+Insertions use existing positive vertex IDs and accept singleton edges.
+Each invocation starts from the input dataset and writes updated core values;
+it does not rewrite the input hypergraph.
 
 ### Important
 
-Before running decomposition or dynamic updates on a raw dataset, run:
+The bundled dataset is ready to run. For a raw dataset that needs renumbering
+and removal of duplicate vertices or singleton edges, use:
 
 ```bash
 ./build/DynamicHypergraphCore <dataset> org
@@ -251,7 +259,7 @@ If you use this code in your research, please cite the corresponding paper:
 
 ```bibtex
 @misc{bai2026fastmaintenance,
-  title = {Fast Maintenance of Neighborhood-Based k-Cores in Dynamic Hypergraphs},
+  title = {Efficient Maintenance of Neighborhood-Based Core Decomposition in Dynamic Hypergraphs},
   author = {Bai, Haotian and Zhang, Wenqian and Tang, Yifu and Luo, Qi and Yang, Zihan and Wen, Dong and Yang, Zhengyi},
   year = {2026},
   note = {Manuscript}

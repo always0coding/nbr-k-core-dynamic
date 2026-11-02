@@ -8,6 +8,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -97,12 +98,15 @@ static std::string trim_copy(const std::string& value) {
 static std::size_t parse_size_t_token(const std::string& value, const std::string& label) {
     std::size_t pos = 0;
     std::string trimmed = trim_copy(value);
-    std::size_t parsed = std::stoull(trimmed, &pos);
-    while (pos < trimmed.size() && std::isspace(static_cast<unsigned char>(trimmed[pos]))) ++pos;
-    if (pos != trimmed.size()) {
+    if (trimmed.empty() || !std::isdigit(static_cast<unsigned char>(trimmed.front()))) {
         throw std::invalid_argument("Invalid " + label + ": " + value);
     }
-    return parsed;
+    unsigned long long parsed = std::stoull(trimmed, &pos);
+    while (pos < trimmed.size() && std::isspace(static_cast<unsigned char>(trimmed[pos]))) ++pos;
+    if (pos != trimmed.size() || parsed > std::numeric_limits<std::size_t>::max()) {
+        throw std::invalid_argument("Invalid " + label + ": " + value);
+    }
+    return static_cast<std::size_t>(parsed);
 }
 
 static std::vector<std::size_t> parse_edge_text(const std::string& text) {
@@ -116,9 +120,11 @@ static std::vector<std::size_t> parse_edge_text(const std::string& text) {
         }
         std::size_t end_pos = pos;
         while (end_pos < text.size() && std::isdigit(static_cast<unsigned char>(text[end_pos]))) ++end_pos;
-        edge.push_back(std::stoull(text.substr(pos, end_pos - pos)));
+        edge.push_back(parse_size_t_token(text.substr(pos, end_pos - pos), "node id"));
         pos = end_pos;
     }
+    std::sort(edge.begin(), edge.end());
+    edge.erase(std::unique(edge.begin(), edge.end()), edge.end());
     return edge;
 }
 
@@ -144,6 +150,8 @@ static std::vector<std::size_t> read_edge_id_file(const std::string& edge_file) 
         if (line.empty()) continue;
         eids.push_back(parse_size_t_token(line, "edge id"));
     }
+    std::sort(eids.begin(), eids.end());
+    eids.erase(std::unique(eids.begin(), eids.end()), eids.end());
     return eids;
 }
 
@@ -159,8 +167,8 @@ static std::vector<std::vector<std::size_t>> read_edge_file(const std::string& e
         line = trim_copy(line);
         if (line.empty()) continue;
         std::vector<std::size_t> edge = parse_edge_text(line);
-        if (edge.size() < 2) {
-            throw std::invalid_argument("Each inserted hyperedge must contain at least two nodes: " + line);
+        if (edge.empty()) {
+            throw std::invalid_argument("Each inserted hyperedge must contain at least one node: " + line);
         }
         edges.push_back(std::move(edge));
     }
@@ -187,8 +195,8 @@ static void validate_existing_nodes(const Hypergraph& hg, const std::vector<std:
     auto last = std::unique(normalized.begin(), normalized.end());
     normalized.erase(last, normalized.end());
 
-    if (normalized.size() < 2) {
-        throw std::invalid_argument("A new hyperedge must contain at least two distinct existing nodes");
+    if (normalized.empty()) {
+        throw std::invalid_argument("A new hyperedge must contain at least one existing node");
     }
 
     for (std::size_t node_id : normalized) {
@@ -378,20 +386,21 @@ static int command_genR(const CommandContext& ctx) {
 static int command_run(const CommandContext& ctx) {
     if (ctx.args.empty() || ctx.args.size() > 2) throw std::invalid_argument("Usage: <dataset> run <alg> [iters] [--info]");
     std::size_t alg = parse_size_t_token(ctx.args[0], "algorithm id");
-    int iters = ctx.args.size() == 2 ? std::stoi(ctx.args[1]) : 1;
+    std::size_t iters = ctx.args.size() == 2 ? parse_size_t_token(ctx.args[1], "iterations") : 1;
     if (alg >= fun_list.size()) throw std::invalid_argument("Invalid algorithm id");
+    if (iters == 0) throw std::invalid_argument("Iterations must be greater than 0");
 
     Hypergraph hg;
     std::cout << "Loading datasets from " << ctx.dataset << "\n";
     hg.loadFromFiles(ctx.dataset);
 
     double static_time = 0.0;
-    for (int i = 0; i < iters; ++i) {
+    for (std::size_t i = 0; i < iters; ++i) {
         auto static_start = Clock::now();
         if (ctx.withInfo) info_fun_list[alg](hg);
         else              fun_list[alg](hg);
         static_time += elapsed_seconds(static_start);
-        if (!ctx.withInfo && i + 1 < iters) hg.resetCore();
+        if (i + 1 < iters) hg.resetCore();
     }
 
     std::cout << "Static decomposition time: " << std::fixed << std::setprecision(6) << static_time << " s.\n";
@@ -424,12 +433,14 @@ static int command_delE_single(const CommandContext& ctx) {
 static int command_addE_single(const CommandContext& ctx) {
     if (ctx.args.empty()) throw std::invalid_argument("Usage: <dataset> addE_single <node1,node2,...>");
     std::vector<std::size_t> edge = parse_edge_from_args(ctx.args);
-    if (edge.size() < 2) throw std::invalid_argument("A new hyperedge must contain at least two nodes");
+    if (edge.empty()) throw std::invalid_argument("A new hyperedge must contain at least one node");
 
     Hypergraph hg = load_graph_with_core(ctx);
     validate_existing_nodes(hg, edge);
+    dynamic_modification::InsertionWorkspace workspace;
+    workspace.prepare(hg.getGraphNodeSize(), hg.getGraphEdgeSize() + 1);
     auto start = Clock::now();
-    dynamic_modification::addE_single(hg, edge);
+    dynamic_modification::addE_single_optimized(hg, edge, workspace);
     double elapsed = elapsed_seconds(start);
 
     std::ostringstream suffix;
@@ -464,8 +475,10 @@ static int command_addE_batch(const CommandContext& ctx) {
 
     Hypergraph hg = load_graph_with_core(ctx);
     validate_existing_nodes(hg, edges);
+    dynamic_modification::InsertionWorkspace workspace;
+    workspace.prepare(hg.getGraphNodeSize(), hg.getGraphEdgeSize() + edges.size());
     auto start = Clock::now();
-    dynamic_modification::addE_batch(hg, edges);
+    dynamic_modification::addE_batch_optimized(hg, edges, workspace);
     double elapsed = elapsed_seconds(start);
 
     std::cout << "Batch insertion of " << edges.size() << " edges finished in "

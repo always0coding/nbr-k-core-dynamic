@@ -28,6 +28,7 @@ add_executable(DynamicHypergraphCore
         src/Dynamic_Algorithm/DynamicModification.h
         src/Dynamic_Algorithm/EdgeAdd.cpp
         src/Dynamic_Algorithm/EdgeDelete.cpp
+        src/Dynamic_Algorithm/EdgeAdd_Optimized.cpp
         src/Dynamic_Algorithm/util.h
         src/Dynamic_Algorithm/util.cpp
 
@@ -38,7 +39,7 @@ add_executable(DynamicHypergraphCore
 )
 
 if(MSVC)
-    target_compile_options(DynamicHypergraphCore PRIVATE /W4)
+    target_compile_options(DynamicHypergraphCore PRIVATE /W4 /utf-8)
 else()
     target_compile_options(DynamicHypergraphCore PRIVATE
             -Wall

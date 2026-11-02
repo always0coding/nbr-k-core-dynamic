@@ -16,11 +16,15 @@ elif command -v ninja >/dev/null 2>&1; then
 fi
 
 cmake -S . -B "$BUILD_DIR" "${generator_args[@]}" -DCMAKE_BUILD_TYPE=Release
-cmake --build "$BUILD_DIR" --parallel
+cmake --build "$BUILD_DIR" --config Release --parallel
 
 BIN="$BUILD_DIR/DynamicHypergraphCore"
 if [[ ! -x "$BIN" && -x "$BIN.exe" ]]; then
   BIN="$BIN.exe"
+fi
+
+if [[ ! -x "$BIN" && -x "$BUILD_DIR/Release/DynamicHypergraphCore.exe" ]]; then
+  BIN="$BUILD_DIR/Release/DynamicHypergraphCore.exe"
 fi
 
 mkdir -p "$OUTPUT_DIR"

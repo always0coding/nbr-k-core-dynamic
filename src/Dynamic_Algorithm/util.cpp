@@ -8,7 +8,6 @@
 
 namespace hg {
 namespace maint {
-namespace {
 
 void updateEdgeCoreForEdge(Hypergraph& graph, std::size_t edgeId) {
     const auto& nodes = graph.getNodes(edgeId);
@@ -22,8 +21,6 @@ void updateEdgeCoreForEdge(Hypergraph& graph, std::size_t edgeId) {
     }
 
     graph.getEdgeCore(edgeId) = hasAnyNode ? minCoreOnEdge : 0;
-}
-
 }
 
 void updateIncidentEdgesCoreForNode(Hypergraph& graph, std::size_t nodeId) {
@@ -44,10 +41,6 @@ std::size_t addEdge(Hypergraph& graph, const std::vector<std::size_t>& nodes) {
     std::sort(sorted_nodes.begin(), sorted_nodes.end());
     auto last = std::unique(sorted_nodes.begin(), sorted_nodes.end());
     sorted_nodes.erase(last, sorted_nodes.end());
-
-    if (sorted_nodes.size() < 2) {
-        throw std::invalid_argument("A new hyperedge must contain at least two distinct existing nodes");
-    }
 
     for (std::size_t node_id : sorted_nodes) {
         if (node_id == 0 || node_id >= graph.node_edge_simplices.size()) {
